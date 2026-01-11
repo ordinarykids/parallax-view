@@ -8,6 +8,7 @@ interface ParallaxProductProps {
   offsetY: number;
   offsetZ: number;
   imageSrc?: string;
+  zoom?: number;
 }
 
 function Placeholder3DShape({
@@ -24,7 +25,7 @@ function Placeholder3DShape({
 
   return (
     <div
-      className="relative h-[300px] w-[300px]"
+      className="relative h-[600px] w-[600px]"
       style={{
         perspective: "1000px",
       }}
@@ -39,19 +40,19 @@ function Placeholder3DShape({
       >
         {/* Front face */}
         <div
-          className="absolute inset-0 flex items-center justify-center border-2 border-amber-300 bg-gradient-to-br from-amber-400 to-amber-600"
+          className="absolute inset-0 flex items-center justify-center border-2 from-amber-400 to-amber-600"
           style={{ transform: "translateZ(150px)" }}
         >
-          <span className="text-4xl font-bold text-white/80">PRODUCT</span>
+          <span className="text-6xl font-bold text-white/80">OK</span>
         </div>
         {/* Back face */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-amber-700 to-amber-900"
+          className="absolute inset-0 bg-gradient-to-br"
           style={{ transform: "translateZ(-150px) rotateY(180deg)" }}
         />
         {/* Right face */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-amber-500 to-amber-700"
+          className="absolute inset-0 bg-gradient-to-br"
           style={{
             width: "300px",
             transform: "rotateY(90deg) translateZ(150px)",
@@ -59,7 +60,7 @@ function Placeholder3DShape({
         />
         {/* Left face */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-amber-600 to-amber-800"
+          className="absolute inset-0 bg-gradient-to-br"
           style={{
             width: "300px",
             transform: "rotateY(-90deg) translateZ(150px)",
@@ -67,7 +68,7 @@ function Placeholder3DShape({
         />
         {/* Top face */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-amber-300 to-amber-500"
+          className="absolute inset-0 bg-gradient-to-br"
           style={{
             height: "300px",
             transform: "rotateX(90deg) translateZ(150px)",
@@ -75,7 +76,7 @@ function Placeholder3DShape({
         />
         {/* Bottom face */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-amber-800 to-amber-950"
+          className="absolute inset-0 bg-gradient-to-br"
           style={{
             height: "300px",
             transform: "rotateX(-90deg) translateZ(150px)",
@@ -91,9 +92,11 @@ export function ParallaxProduct({
   offsetY,
   offsetZ,
   imageSrc,
+  zoom = 1,
 }: ParallaxProductProps) {
   const [imageError, setImageError] = useState(false);
-  const scale = 1 + offsetZ * 0.15;
+  // Scale based on depth + zoom level
+  const scale = (1 + offsetZ * 0.15) * zoom;
 
   return (
     <div

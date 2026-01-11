@@ -5,6 +5,7 @@ interface PerspectiveGridProps {
   offsetY: number;
   offsetZ: number;
   gridColor?: string;
+  zoom?: number;
 }
 
 export function PerspectiveGrid({
@@ -12,13 +13,15 @@ export function PerspectiveGrid({
   offsetY,
   offsetZ,
   gridColor = "#ffffff",
+  zoom = 1,
 }: PerspectiveGridProps) {
   // Vanishing point shifts based on head position
   const vanishX = 50 + offsetX * 15;
   const vanishY = 50 + offsetY * 15;
 
-  // Depth scaling based on Z
-  const depthScale = 1 + offsetZ * 0.1;
+  // Depth scaling based on Z and zoom
+  // Higher zoom = smaller back wall = deeper looking room
+  const depthScale = (1 + offsetZ * 0.1) / zoom;
 
   // Grid configuration
   const gridLines = 12;

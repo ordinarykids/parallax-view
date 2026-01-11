@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFaceTracking } from "@/hooks/useFaceTracking";
-import { PerspectiveGrid } from "./PerspectiveGrid";
-import { ParallaxProduct } from "./ParallaxProduct";
-import { ControlPanel } from "./ControlPanel";
-import { WebcamPreview } from "./WebcamPreview";
-import { GazeIndicator } from "./GazeIndicator";
+import { PerspectiveGrid } from "@/components/PerspectiveGrid";
+import { FaceSketch } from "@/components/FaceSketch";
+import { ControlPanel } from "@/components/ControlPanel";
+import { WebcamPreview } from "@/components/WebcamPreview";
+import { GazeIndicator } from "@/components/GazeIndicator";
 
 interface ParallaxSettings {
   parallaxXMin: number;
@@ -26,7 +26,7 @@ const defaultSettings: ParallaxSettings = {
   smoothing: 0.1,
 };
 
-export function ParallaxScene() {
+export default function Experiment2() {
   const {
     combinedPosition,
     gazePosition,
@@ -80,8 +80,7 @@ export function ParallaxScene() {
   }, [isTracking, startTracking, stopTracking]);
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
-
+    <div className="relative h-screen w-full overflow-hidden bg-black">
       {/* 3D Perspective Grid */}
       <PerspectiveGrid
         offsetX={smoothedPosition.x}
@@ -90,8 +89,8 @@ export function ParallaxScene() {
         zoom={settings.zoom}
       />
 
-      {/* Product Display - add imageSrc="/your-product.png" to show an image */}
-      <ParallaxProduct
+      {/* Face Sketch - line drawing of face */}
+      <FaceSketch
         offsetX={smoothedPosition.x}
         offsetY={smoothedPosition.y}
         offsetZ={smoothedPosition.z}
@@ -112,23 +111,28 @@ export function ParallaxScene() {
       {/* Webcam Preview */}
       <WebcamPreview ref={videoRef} isTracking={isTracking} />
 
-      {/* Gaze Indicator - pink dot showing where you're looking */}
+      {/* Gaze Indicator */}
       <GazeIndicator
         gazeX={gazePosition.x}
         gazeY={gazePosition.y}
         isTracking={isTracking}
       />
 
+      {/* Title */}
+      <div className="absolute right-4 top-4 font-mono text-sm text-white/50">
+        /experiment-2
+      </div>
+
       {/* Position Debug */}
-      <div className="absolute bottom-4 left-4 text-xs text-gray-500 font-mono space-y-1">
+      <div className="absolute bottom-4 left-4 space-y-1 font-mono text-xs text-gray-500">
         <div className="text-gray-400">Combined:</div>
         <div>X: {smoothedPosition.x.toFixed(3)}</div>
         <div>Y: {smoothedPosition.y.toFixed(3)}</div>
         <div>Z: {smoothedPosition.z.toFixed(3)}</div>
-        <div className="text-gray-400 mt-2">Gaze:</div>
+        <div className="mt-2 text-gray-400">Gaze:</div>
         <div>X: {gazePosition.x.toFixed(3)}</div>
         <div>Y: {gazePosition.y.toFixed(3)}</div>
-        <div className="text-gray-400 mt-2">Head:</div>
+        <div className="mt-2 text-gray-400">Head:</div>
         <div>X: {facePosition.x.toFixed(3)}</div>
         <div>Y: {facePosition.y.toFixed(3)}</div>
       </div>

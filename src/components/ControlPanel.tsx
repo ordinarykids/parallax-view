@@ -18,6 +18,8 @@ interface ControlPanelProps {
   isTracking: boolean;
   onToggleTracking: () => void;
   isLoading: boolean;
+  gazeWeight: number;
+  onGazeWeightChange: (weight: number) => void;
 }
 
 export function ControlPanel({
@@ -26,6 +28,8 @@ export function ControlPanel({
   isTracking,
   onToggleTracking,
   isLoading,
+  gazeWeight,
+  onGazeWeightChange,
 }: ControlPanelProps) {
   const updateSetting = (
     key: keyof ParallaxSettings,
@@ -42,6 +46,24 @@ export function ControlPanel({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>Gaze Weight</span>
+            <span>{(gazeWeight * 100).toFixed(0)}%</span>
+          </div>
+          <Slider
+            value={[gazeWeight]}
+            onValueChange={([v]) => onGazeWeightChange(v)}
+            min={0}
+            max={1}
+            step={0.05}
+          />
+          <div className="flex justify-between text-[10px] text-gray-500">
+            <span>Head Only</span>
+            <span>Gaze Only</span>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-gray-400">
             <span>Parallax X</span>
