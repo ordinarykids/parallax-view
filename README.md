@@ -5,6 +5,7 @@ Face-tracking parallax experiments using webcam-based head position and gaze det
 ![Parallax View](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-Face%20Detection-orange?logo=tensorflow)
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-Face%20Landmarks-blue)
+![Framer Motion](https://img.shields.io/badge/Framer%20Motion-Physics-purple)
 
 ## Experiments
 
@@ -40,6 +41,39 @@ Ambient floating orbs and particles with multi-layer parallax. A meditative expl
 - Gradient blur effects
 - Particle field with depth variation
 - Minimal typography with parallax offset
+
+### `/experiment-4` — Spring Physics
+
+Card stack with spring-based physics. Each card responds with different stiffness and damping for natural motion.
+
+**Features:**
+
+- Spring dynamics with configurable stiffness/damping/mass
+- Stacked cards with depth-based physics
+- 3D rotation and tilt based on head movement
+- Hover interactions with scale animations
+
+### `/experiment-5` — Kinetic Cards
+
+Floating emoji cards scattered across the screen. Bouncy physics make them feel alive and playful.
+
+**Features:**
+
+- Bounce physics with depth-based response
+- Multiple card sizes (small/medium/large)
+- Hover reveals labels with smooth animations
+- Mesh gradient background that follows head movement
+
+### `/experiment-6` — 3D Carousel
+
+Rotating card carousel with momentum. Head movement controls rotation with natural inertia.
+
+**Features:**
+
+- Momentum-based rotation controlled by head position
+- Cards arranged in 3D circle with proper transforms
+- Opacity and scale based on Z position
+- Active card indicator dots
 
 ---
 
@@ -92,6 +126,18 @@ Head position is mapped to parallax offset:
 - Moving head **up/down** shifts vertically
 - Moving **closer/farther** affects depth/zoom
 
+### Physics Animation
+
+Experiments 4-6 use Framer Motion's spring physics:
+
+```typescript
+const springConfig = {
+  stiffness: 300, // Higher = snappier
+  damping: 20,    // Higher = less oscillation
+  mass: 0.5,      // Higher = more inertia
+};
+```
+
 ### Smoothing
 
 Position updates use linear interpolation (lerp) for smooth motion:
@@ -121,6 +167,7 @@ Each experiment includes a control panel with:
 - **Next.js 15** — React framework with App Router
 - **TensorFlow.js** — Face detection ML model
 - **MediaPipe** — Face landmarks for sketch rendering
+- **Framer Motion** — Spring physics and animations
 - **Tailwind CSS v4** — Styling
 - **shadcn/ui** — UI components (slider, card)
 
@@ -134,7 +181,10 @@ src/
 │   ├── page.tsx              # Experiment hub
 │   ├── experiment-1/         # Product viewer
 │   ├── experiment-2/         # Face sketch
-│   └── experiment-3/         # Depth field
+│   ├── experiment-3/         # Depth field
+│   ├── experiment-4/         # Spring physics cards
+│   ├── experiment-5/         # Kinetic floating cards
+│   └── experiment-6/         # 3D carousel
 ├── components/
 │   ├── ParallaxScene.tsx     # Main scene wrapper
 │   ├── ParallaxProduct.tsx   # 3D product display
@@ -143,9 +193,11 @@ src/
 │   ├── GazeIndicator.tsx     # Gaze tracking dot
 │   ├── ControlPanel.tsx      # Settings UI
 │   ├── WebcamPreview.tsx     # Camera feed preview
+│   ├── SuppressTFLogs.tsx    # TensorFlow log filter
 │   └── ui/                   # shadcn components
 └── hooks/
-    └── useFaceTracking.ts    # Face detection hook
+    ├── useFaceTracking.ts    # Face detection hook
+    └── useSpringPhysics.ts   # Custom spring physics hook
 ```
 
 ---
