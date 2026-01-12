@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,6 +21,8 @@ interface ControlPanelProps {
   isLoading: boolean;
   gazeWeight: number;
   onGazeWeightChange: (weight: number) => void;
+  imageSrc?: string | null;
+  onImageChange?: (src: string | null) => void;
 }
 
 export function ControlPanel({
@@ -30,13 +33,57 @@ export function ControlPanel({
   isLoading,
   gazeWeight,
   onGazeWeightChange,
+  imageSrc,
+  onImageChange,
 }: ControlPanelProps) {
+  const [urlInput, setUrlInput] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const updateSetting = (
     key: keyof ParallaxSettings,
     value: number
   ) => {
     onSettingsChange({ ...settings, [key]: value });
   };
+
+  const handleFileSelect = useCallback((file: File) => {
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        onImageChange(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [onImageChange]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, [handleFileSelect]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleUrlSubmit = useCallback(() => {
+    if (urlInput.trim()) {
+      onImageChange(urlInput.trim());
+      setUrlInput("");
+    }
+  }, [urlInput, onImageChange]);
+
+  const handleClearImage = useCallback(() => {
+    onImageChange(null);
+    setUrlInput("");
+  }, [onImageChange]);
 
   return (
     <Card className="absolute top-4 left-4 w-64 bg-black/80 border-gray-700 text-white">
@@ -141,6 +188,64 @@ export function ControlPanel({
             step={0.01}
           />
         </div>
+
+        {/* Image Input Section - only show if onImageChange is provided */}
+        {onImageChange && (
+          <div className="space-y-2 border-t border-gray-700 pt-4">
+            <div className="text-xs text-gray-400">Product Image</div>
+
+            {/* Drop zone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
+              className={`
+                border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-colors
+                ${isDragging ? "border-blue-500 bg-blue-500/10" : "border-gray-600 hover:border-gray-500"}
+              `}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                className="hidden"
+              />
+              <div className="text-xs text-gray-400">
+                Drop image or click to upload
+              </div>
+            </div>
+
+            {/* URL input */}
+            <div className="flex gap-1">
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
+                placeholder="Or paste image URL..."
+                className="flex-1 px-2 py-1 text-xs bg-gray-800 border border-gray-600 rounded focus:outline-none focus:border-gray-500"
+              />
+              <button
+                onClick={handleUrlSubmit}
+                className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+              >
+                Go
+              </button>
+            </div>
+
+            {/* Clear button */}
+            {imageSrc && (
+              <button
+                onClick={handleClearImage}
+                className="w-full py-1 text-xs text-gray-400 hover:text-white transition-colors"
+              >
+                Clear image
+              </button>
+            )}
+          </div>
+        )}
 
         <button
           onClick={onToggleTracking}

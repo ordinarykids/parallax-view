@@ -6,6 +6,12 @@ import { useFaceTracking } from "@/hooks/useFaceTracking";
 import { ControlPanel } from "@/components/ControlPanel";
 import { WebcamPreview } from "@/components/WebcamPreview";
 
+interface CarouselImage {
+  id: number;
+  src: string;
+  title?: string;
+}
+
 interface ParallaxSettings {
   parallaxXMin: number;
   parallaxXMax: number;
@@ -24,43 +30,48 @@ const defaultSettings: ParallaxSettings = {
   smoothing: 0.1,
 };
 
-// 3D Carousel cards
-const carouselCards = [
+// Default carousel cards (used when no images uploaded)
+const defaultCarouselCards = [
   {
     id: 1,
     title: "Explore",
     description: "Discover new horizons",
-    image: "🏔️",
+    emoji: "🏔️",
     accent: "#8B5CF6",
   },
   {
     id: 2,
     title: "Create",
     description: "Build something amazing",
-    image: "🎨",
+    emoji: "🎨",
     accent: "#EC4899",
   },
   {
     id: 3,
     title: "Connect",
     description: "Join the community",
-    image: "🤝",
+    emoji: "🤝",
     accent: "#06B6D4",
   },
   {
     id: 4,
     title: "Grow",
     description: "Level up your skills",
-    image: "🌱",
+    emoji: "🌱",
     accent: "#10B981",
   },
   {
     id: 5,
     title: "Launch",
     description: "Ship with confidence",
-    image: "🚀",
+    emoji: "🚀",
     accent: "#F59E0B",
   },
+];
+
+const accentColors = [
+  "#8B5CF6", "#EC4899", "#06B6D4", "#10B981", "#F59E0B",
+  "#EF4444", "#3B82F6", "#14B8A6", "#F97316", "#A855F7",
 ];
 
 function CarouselCard({
@@ -71,14 +82,16 @@ function CarouselCard({
   tiltX,
   tiltY,
   isActive,
+  imageSrc,
 }: {
-  card: (typeof carouselCards)[0];
+  card: (typeof defaultCarouselCards)[0];
   index: number;
   totalCards: number;
   rotation: number;
   tiltX: number;
   tiltY: number;
   isActive: boolean;
+  imageSrc?: string;
 }) {
   const angle = (index / totalCards) * 360 + rotation;
   const radian = (angle * Math.PI) / 180;
@@ -128,20 +141,30 @@ function CarouselCard({
 
         {/* Content */}
         <div className="relative flex h-full flex-col items-center justify-center p-6">
-          <motion.div
-            className="mb-4 text-7xl"
-            animate={{
-              y: [0, -10, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: index * 0.2,
-            }}
-          >
-            {card.image}
-          </motion.div>
+          {imageSrc ? (
+            <div className="mb-4 h-32 w-32 overflow-hidden rounded-xl">
+              <img
+                src={imageSrc}
+                alt={card.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <motion.div
+              className="mb-4 text-7xl"
+              animate={{
+                y: [0, -10, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: index * 0.2,
+              }}
+            >
+              {card.emoji}
+            </motion.div>
+          )}
 
           <h3 className="text-2xl font-bold" style={{ color: card.accent }}>
             {card.title}
@@ -193,7 +216,57 @@ export default function Experiment6() {
     y: 0,
     z: 0,
   });
+  const [carouselImages, setCarouselImages] = useState<CarouselImage[]>([]);
+  const [urlInput, setUrlInput] = useState("");
+  const [showUploadPanel, setShowUploadPanel] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const smoothedRef = useRef(smoothedPosition);
+
+  // Use uploaded images or default cards
+  const displayCards = carouselImages.length > 0
+    ? carouselImages.map((img, i) => ({
+        id: img.id,
+        title: img.title || `Image ${i + 1}`,
+        description: "",
+        emoji: "",
+        accent: accentColors[i % accentColors.length],
+        imageSrc: img.src,
+      }))
+    : defaultCarouselCards.map(card => ({ ...card, imageSrc: undefined }));
+
+  const handleFileSelect = useCallback((files: FileList) => {
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const src = e.target?.result as string;
+          setCarouselImages((prev) => [
+            ...prev,
+            { id: Date.now() + Math.random(), src, title: file.name.split('.')[0] },
+          ]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }, []);
+
+  const handleUrlSubmit = useCallback(() => {
+    if (urlInput.trim()) {
+      setCarouselImages((prev) => [
+        ...prev,
+        { id: Date.now(), src: urlInput.trim() },
+      ]);
+      setUrlInput("");
+    }
+  }, [urlInput]);
+
+  const handleRemoveImage = useCallback((id: number) => {
+    setCarouselImages((prev) => prev.filter((img) => img.id !== id));
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setCarouselImages([]);
+  }, []);
 
   // Carousel rotation with momentum
   const rotationVelocity = useMotionValue(0);
@@ -240,8 +313,8 @@ export default function Experiment6() {
   const currentRotation = rotation.get();
   const activeIndex =
     Math.round(
-      (((-currentRotation % 360) + 360) % 360) / (360 / carouselCards.length),
-    ) % carouselCards.length;
+      (((-currentRotation % 360) + 360) % 360) / (360 / displayCards.length),
+    ) % displayCards.length;
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
@@ -274,16 +347,17 @@ export default function Experiment6() {
             rotateX: smoothedPosition.y * 5,
           }}
         >
-          {carouselCards.map((card, index) => (
+          {displayCards.map((card, index) => (
             <CarouselCard
               key={card.id}
               card={card}
               index={index}
-              totalCards={carouselCards.length}
+              totalCards={displayCards.length}
               rotation={currentRotation}
               tiltX={smoothedPosition.x}
               tiltY={smoothedPosition.y}
               isActive={index === activeIndex}
+              imageSrc={card.imageSrc}
             />
           ))}
         </motion.div>
@@ -307,7 +381,7 @@ export default function Experiment6() {
 
       {/* Active card indicator */}
       <div className="absolute bottom-20 left-1/2 flex -translate-x-1/2 gap-2">
-        {carouselCards.map((card, index) => (
+        {displayCards.map((card, index) => (
           <motion.div
             key={card.id}
             className="h-2 w-2 rounded-full"
@@ -320,6 +394,102 @@ export default function Experiment6() {
           />
         ))}
       </div>
+
+      {/* Image Upload Toggle Button */}
+      <button
+        onClick={() => setShowUploadPanel(!showUploadPanel)}
+        className="absolute right-4 top-14 z-50 rounded-lg bg-white/10 px-3 py-2 text-xs text-white/70 backdrop-blur-sm transition-colors hover:bg-white/20"
+      >
+        {showUploadPanel ? "Hide" : "Add Images"}
+      </button>
+
+      {/* Image Upload Panel */}
+      {showUploadPanel && (
+        <div className="absolute right-4 top-24 z-50 w-64 rounded-xl border border-white/10 bg-black/80 p-4 backdrop-blur-xl">
+          <h3 className="mb-3 text-sm font-medium text-white/80">Carousel Images</h3>
+
+          {/* Drop zone */}
+          <div
+            onDrop={(e) => {
+              e.preventDefault();
+              if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files);
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onClick={() => fileInputRef.current?.click()}
+            className="mb-3 cursor-pointer rounded-lg border-2 border-dashed border-white/20 p-4 text-center transition-colors hover:border-white/40"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+              className="hidden"
+            />
+            <div className="text-xs text-white/50">
+              Drop images or click to upload
+            </div>
+          </div>
+
+          {/* URL input */}
+          <div className="mb-3 flex gap-1">
+            <input
+              type="text"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
+              placeholder="Paste image URL..."
+              className="flex-1 rounded bg-white/10 px-2 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/30"
+            />
+            <button
+              onClick={handleUrlSubmit}
+              className="rounded bg-white/20 px-2 py-1 text-xs text-white hover:bg-white/30"
+            >
+              Add
+            </button>
+          </div>
+
+          {/* Image list */}
+          {carouselImages.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/50">{carouselImages.length} images</span>
+                <button
+                  onClick={handleClearAll}
+                  className="text-xs text-red-400 hover:text-red-300"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="max-h-40 space-y-1 overflow-y-auto">
+                {carouselImages.map((img, i) => (
+                  <div
+                    key={img.id}
+                    className="flex items-center gap-2 rounded bg-white/5 p-1.5"
+                  >
+                    <img
+                      src={img.src}
+                      alt=""
+                      className="h-8 w-8 rounded object-cover"
+                    />
+                    <span className="flex-1 truncate text-xs text-white/60">
+                      {img.title || `Image ${i + 1}`}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveImage(img.id)}
+                      className="text-white/40 hover:text-white/80"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Control Panel */}
       <ControlPanel

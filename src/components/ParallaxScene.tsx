@@ -41,6 +41,7 @@ export function ParallaxScene() {
   } = useFaceTracking();
 
   const [settings, setSettings] = useState<ParallaxSettings>(defaultSettings);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [smoothedPosition, setSmoothedPosition] = useState({
     x: 0,
     y: 0,
@@ -90,12 +91,13 @@ export function ParallaxScene() {
         zoom={settings.zoom}
       />
 
-      {/* Product Display - add imageSrc="/your-product.png" to show an image */}
+      {/* Product Display */}
       <ParallaxProduct
         offsetX={smoothedPosition.x}
         offsetY={smoothedPosition.y}
         offsetZ={smoothedPosition.z}
         zoom={settings.zoom}
+        imageSrc={imageSrc || undefined}
       />
 
       {/* Control Panel */}
@@ -107,6 +109,8 @@ export function ParallaxScene() {
         isLoading={isLoading}
         gazeWeight={gazeWeight}
         onGazeWeightChange={setGazeWeight}
+        imageSrc={imageSrc}
+        onImageChange={setImageSrc}
       />
 
       {/* Webcam Preview */}

@@ -111,14 +111,24 @@ export function ParallaxProduct({
     >
       {imageSrc && !imageError ? (
         <div className="relative h-[400px] w-[600px]">
-          <Image
-            src={imageSrc}
-            alt="Product"
-            fill
-            className="object-contain drop-shadow-2xl"
-            priority
-            onError={() => setImageError(true)}
-          />
+          {/* Use native img for data URLs and external URLs */}
+          {imageSrc.startsWith("data:") || imageSrc.startsWith("http") ? (
+            <img
+              src={imageSrc}
+              alt="Product"
+              className="h-full w-full object-contain drop-shadow-2xl"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <Image
+              src={imageSrc}
+              alt="Product"
+              fill
+              className="object-contain drop-shadow-2xl"
+              priority
+              onError={() => setImageError(true)}
+            />
+          )}
         </div>
       ) : (
         <Placeholder3DShape offsetX={offsetX} offsetY={offsetY} />
